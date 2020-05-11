@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>To-Do App</title>
+  <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+</head>
+<body onload="retrieveList()" onunload="storeList()">
+
+  <div class="container-fluid">
+      <form>
+        <div class="row" id="header">
+            <div class="input-group justify-content-center">
+                <input class="form-control col-xs-10" type="text" id="listTextbox" placeholder="Insert Task">
+                <div class="input-group-append col-xs-2">
+                  <input class="btn btn-success btn-lg" type="submit" id="listButton" value="+">
+                </div>
+            </div>
+        </div>
+      </form>
+      <div class="row justify-content-center">
+        <div class="col-8 align-items-center">
+          <div id="listDisplay"><ul class="list-group" id="tasksList"></ul></div>
+        </div>
+      </div>
+  </div>
+
+<script type="text/javascript">
+  // Global variables are assigned here
+  var todoList = [];
+  var listTextbox = document.getElementById('listTextbox');
+  var listDisplay = document.getElementById('listDisplay');
+
+  // Task and button ids are generated with this function
+  function guid() {
+    function s4() {
+      return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+    }
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+  }
+
+  // This function handles completing tasks
+  function taskButtonClick(event) {
+    var thisItem = event.parentElement;
+    var y = todoList.find(x => x.id == event.id);
+
+    thisItem.style.display = 'none';
+    y.completed = true;
+    console.log(todoList);
+  }
+
+  // This function handles adding tasks and dealing with other special commands
+  function addToList(event){
+    event.preventDefault();
+    if (listTextbox.value == '') {
+      return false;
+    }
+    // Special admin command to clear local storage for testing purposes
+    else if (listTextbox.value == 'admin.clearLocalStorage') {
+      localStorage.clear();
+      todoList = [];
+      return false;
+    }
+
+    // Creates the object that will be inserted into the array
+    var todoItem = {
+      id: guid(),
+      task: '',
+      completed: false,
+    };
+
+    // Pushes the value of the textbox and resets the textbox
+    todoItem.task = listTextbox.value;
+    todoList.push(todoItem);
+    listTextbox.value = '';
+    listTextbox.focus();
+
+    console.log(todoList);
+
+    // This is where tasks are drawn when they are added to the list
+    var listItem = document.createElement('LI');
+    var listDiv = document.createElement('DIV');
+    var listButton = document.createElement('INPUT')
+    var textnode = document.createTextNode(todoItem.task);
+
+    listItem.className = "list-group-item";
+    listDiv.className = "taskStyle";
+
+    listButton.className = "btn btn-primary btn-lg";
+    listButton.id = todoItem.id;
+    listButton.type = "button";
+    listButton.value = "Finish Task";
+    listButton.setAttribute('onClick', 'taskButtonClick(this)');
+
+
+    listDiv.appendChild(textnode);
+    listItem.appendChild(listDiv);
+    listItem.appendChild(listButton);
+    document.getElementById('tasksList').appendChild(listItem);
+  }
+
+  // Listens for the add to list button
+  document.getElementById("listButton").addEventListener('click',addToList);
+
+  // Called when the page is closed to store values for later use
+  function storeList() {
+    if (typeof(Storage) !== "undefined") {
+      var myJSON = JSON.stringify(todoList);
+
+      localStorage.setItem("myTodoList", myJSON);
+    } else {
+      alert("Upgrade your browser for Local Storage functionallity.")
+    }
+  }
+
+  // Called when page is open to retrieve the stored values and display them again
+  function retrieveList() {
+    var result = localStorage.getItem("myTodoList");
+    todoList = JSON.parse(result);
+
+      // Goes through every item in the array to check and see if they are completed
+      // If they are not completed they are all drawn again
+      todoList.forEach(function(task){
+        if (task.completed == false) {
+          var listItem = document.createElement('LI');
+          var listDiv = document.createElement('DIV');
+          var listButton = document.createElement('INPUT')
+          var textnode = document.createTextNode(task.task);
+
+          listItem.className = "list-group-item";
+          listDiv.className = "taskStyle";
+
+          listButton.className = "btn btn-primary btn-lg";
+          listButton.id = task.id;
+          listButton.type = "button";
+          listButton.value = "Finish Task";
+          listButton.setAttribute('onClick', 'taskButtonClick(this)');
+
+
+          listDiv.appendChild(textnode);
+          listItem.appendChild(listDiv);
+          listItem.appendChild(listButton);
+          document.getElementById('tasksList').appendChild(listItem);
+        }
+      });
+
+  }
+
+</script>
+</body>
+</html>
